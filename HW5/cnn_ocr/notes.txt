@@ -1,0 +1,42 @@
+void conv_3d(uint64_t o, convolutional_layer *entry, float_t *pa)
+{
+    for (uint64_t inc = 0; inc < in_.depth_; inc++) {
+        for (uint64_t y = 0; y < out_.height_; y++) {
+        for (uint64_t x = 0; x < out_.width_; x++) {
+            float_t *ppw = pw, sum = (float_t) 0;
+            uint64_t wx = 0, widx = 0;
+            for (uint64_t wyx = 0; wyx < weight_.height_ * weight_.width_; wyx++) {
+                sum += *ppw++ * ppi[widx];
+                wx++, widx++;
+                if (wx == weight_.width_) {
+                    wx = 0;
+                    widx += const1;
+                }
+            }
+            pa[idx++] += sum;
+            ppi += w_stride_;
+        }
+        ppi += const2;
+        }
+    }
+}
+
+void conv_3d(uint64_t o, convolutional_layer *entry, float_t *pa)
+{
+    for (uint64_t inc = 0; inc < in_.depth_; inc++) {
+        for (uint64_t y = 0; y < out_.height_; y++) {
+        for (uint64_t x = 0; x < out_.width_; x++) {
+            float_t *ppw = pw, sum = (float_t) 0;
+            uint64_t wx = 0, widx = 0;
+
+            volatile int *trigger_hw = (int *) 0xC4000000;
+            *trigger_hw = 1;
+            while (*trigger_hw) /* busy waiting */;
+            
+            pa[idx++] += sum;
+            ppi += w_stride_;
+        }
+        ppi += const2;
+        }
+    }
+}
